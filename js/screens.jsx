@@ -197,7 +197,7 @@ const DetailScreen = ({ p, onBack, onOpenCat, onDelete, onRefresh, refreshing, o
 
       {p.shots && p.shots.length ? (
         <div className="gallery">
-          {p.shots.map((s, k) => <Shot key={k} src={s} alt={`${p.name} ${k + 1}`} isPrivate={!!p.private} />)}
+          {p.shots.map((s, k) => <Shot key={k} src={s} alt={`${p.name} ${k + 1}`} />)}
         </div>
       ) : (
         <div className="bigmono"><Cover p={p} /></div>

@@ -44,19 +44,28 @@ const SHOT_BAD = /(node_modules|\/dist\/|\/build\/|packaging|deb_root|\.deb|andr
 /* Extrait les URLs d'images présentes dans un README Markdown
    (balises ![alt](url) et <img src="…">) — utilisé en repli quand
    l'arbre Git ne contient pas de captures (dépôts privés ou pas d'images dans les assets). */
-function extractReadmeImages(readme) {
+function extractReadmeImages(readme, owner, repo, branch) {
   if (!readme) return [];
   const seen = new Set();
-  const mdRe   = /!\[[^\]]*\]\(([^\s)]+)/g;           // ![alt](url) ou ![alt](url "title")
-  const htmlRe  = /<img[^>]+src=["']([^"'>]+)/gi;     // <img src="url">
+  function addUrl(raw) {
+    if (!raw) return;
+    let url = raw;
+    // Résoudre les chemins relatifs → URL raw GitHub absolue
+    if (!/^https?:\/\//i.test(url) && owner && repo && branch) {
+      const clean = url.replace(/^\.\//, "").replace(/^\//, "");
+      if (!clean || clean.startsWith("..")) return;     // chemin trop complexe
+      url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/` +
+            clean.split("/").map(encodeURIComponent).join("/");
+    }
+    if (/^https?:\/\//i.test(url) && IMG_RE.test(url) && !SHOT_BAD.test(url))
+      seen.add(url);
+  }
+  const mdRe   = /!\[[^\]]*\]\(([^\s)]+)/g;
+  const htmlRe  = /<img[^>]+src=["']([^"'>]+)/gi;
   let m;
   for (const re of [mdRe, htmlRe]) {
     re.lastIndex = 0;
-    while ((m = re.exec(readme)) !== null) {
-      const url = m[1];
-      if (/^https?:\/\//i.test(url) && IMG_RE.test(url) && !SHOT_BAD.test(url))
-        seen.add(url);
-    }
+    while ((m = re.exec(readme)) !== null) addUrl(m[1]);
   }
   return [...seen].slice(0, 4);
 }
@@ -92,7 +101,7 @@ async function refreshFiche(existing, opts) {
   let shots = (existing.shots && existing.shots.length)
     ? existing.shots
     : await detectShots(owner, repo, branch, token, isPriv);
-  if (!shots.length) shots = extractReadmeImages(readme);
+  if (!shots.length) shots = extractReadmeImages(readme, owner, repo, branch);
   return {
     ...existing,
     ...(gen ? { tagline: gen.tagline, pitch: gen.pitch, features: gen.features, tech: gen.tech } : {}),
@@ -168,7 +177,7 @@ const SyncScreen = ({ projects, onAdd, onOpen, goHome, onPendingCount }) => {
             ? await buildFiche({ url: r.url, readme, cfg })
             : fallbackFiche({ repo: r.name, url: r.url, desc: r.desc, lang: r.lang, isPrivate: r.private, branch: r.branch });
           let shots = await detectShots(r.owner, r.name, r.branch, token, r.private);
-          if (!shots.length) shots = extractReadmeImages(readme);
+          if (!shots.length) shots = extractReadmeImages(readme, r.owner, r.name, r.branch);
           fiche.shots = shots;
           fiche.private = r.private; fiche.branch = r.branch; fiche.baseline = r.pushed;
         }

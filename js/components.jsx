@@ -45,7 +45,7 @@ const Cover = ({ p, className }) => {
   const shot = p.shots && p.shots[0];
   if (shot && !err) {
     function handleError() {
-      if (!p.private || blobUrl) { setErr(true); return; }
+      if (blobUrl) { setErr(true); return; }
       const token = localStorage.getItem('projector.ghToken') || '';
       if (!token) { setErr(true); return; }
       fetch(shot, { headers: { Authorization: 'Bearer ' + token } })
@@ -69,14 +69,14 @@ const Cover = ({ p, className }) => {
 
 /* ───── Gallery shot (hides itself if the image fails to load)
    isPrivate : si vrai, tente un re-fetch authentifié (token GitHub localStorage) en cas d'erreur 403 ───── */
-const Shot = ({ src, alt, isPrivate }) => {
+const Shot = ({ src, alt }) => {
   const [err, setErr] = useState(false);
   const [blobUrl, setBlobUrl] = useState(null);
   if (err) return null;
   function handleError() {
-    if (!isPrivate || blobUrl) { setErr(true); return; }
+    if (blobUrl) { setErr(true); return; }          // déjà tenté en auth → abandon
     const token = localStorage.getItem('projector.ghToken') || '';
-    if (!token) { setErr(true); return; }
+    if (!token) { setErr(true); return; }            // pas de token → abandon
     fetch(src, { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.ok ? r.blob() : Promise.reject())
       .then(b => setBlobUrl(URL.createObjectURL(b)))
