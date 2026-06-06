@@ -4,6 +4,14 @@ Tous les changements notables de ProjectorApp sont documentés ici.
 
 ---
 
+## [1.2.1] — 2026-06-06
+
+### Corrigé
+- **Images dépôts privés** : `raw.githubusercontent.com` bloque silencieusement les requêtes `fetch()` avec header `Authorization` (pas de `Access-Control-Allow-Headers` sur le preflight OPTIONS). Ajout de `fetchPrivateShot` dans `components.jsx` qui convertit l'URL raw en appel `api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}` avec `Accept: application/vnd.github.raw+json` — ce endpoint supporte explicitement CORS + auth Bearer et retourne les octets bruts du fichier → blob URL.
+- `Cover` et `Shot` n'utilisent cette route que pour les URLs `raw.githubusercontent.com` (les URLs externes ajoutées manuellement continuent d'être chargées directement).
+
+---
+
 ## [1.2.0] — 2026-06-06
 
 ### Ajouté

@@ -93,7 +93,12 @@ Pour chaque dépôt synchronisé, l'app tente deux stratégies dans l'ordre :
 1. **`detectShots`** (dépôts publics) : scanne l'arbre Git récursif (`/git/trees`), filtre les fichiers image > 12 Ko, exclut icônes/logos/builds, trie par pertinence (dossiers `screenshot`, `docs`, `media`…).
 2. **`extractReadmeImages`** (repli) : parse le README à la recherche de balises `![](url)` et `<img src>`. Les chemins relatifs (`assets/img.png`) sont résolus en URL `raw.githubusercontent.com` absolues. Utilisé pour les dépôts privés (detectShots n'y a pas accès) et quand l'arbre ne contient pas d'images.
 
-Pour l'affichage, `Cover` et `Shot` tentent d'abord l'URL directe. Si elle échoue et qu'un token GitHub est mémorisé, ils effectuent un fetch authentifié → blob URL (gère les images de dépôts privés et le rate-limit GitHub public).
+Pour l'affichage, `Cover` et `Shot` tentent d'abord l'URL directe. Si elle échoue et qu'un token GitHub est mémorisé, ils passent par **`fetchPrivateShot`** :
+
+- `raw.githubusercontent.com` ne supporte pas le CORS pour les requêtes authentifiées (pas de `Access-Control-Allow-Headers: Authorization` sur le preflight) — un `fetch()` direct avec `Authorization` est donc bloqué silencieusement par le navigateur.
+- La solution : convertir l'URL raw en `https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}` avec `Accept: application/vnd.github.raw+json`, qui supporte explicitement le CORS + auth et retourne les octets bruts → blob URL.
+
+> Le token GitHub doit être coché **« Mémoriser »** dans l'écran de synchro pour être disponible au moment du rendu des cartes.
 
 ---
 

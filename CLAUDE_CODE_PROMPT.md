@@ -40,7 +40,9 @@ Pour tester en local : `npm run dev` → `http://localhost:5173`.
 - `PasteScreen` : génération manuelle depuis un README collé.
 
 ### Affichage des captures
-- `Cover` et `Shot` tentent le chargement direct, puis un **fetch authentifié** (token localStorage) si l'image échoue — gère les dépôts privés et le rate-limit GitHub.
+- `Cover` et `Shot` tentent le chargement direct, puis `fetchPrivateShot` si l'image échoue.
+- **`fetchPrivateShot`** : convertit une URL `raw.githubusercontent.com` en appel `api.github.com/repos/.../contents/...?ref=branch` avec `Accept: application/vnd.github.raw+json` — contourne le blocage CORS de raw.githubusercontent.com pour les requêtes authentifiées.
+- Nécessite le token GitHub mémorisé en localStorage (`projector.ghToken`).
 - Éditeur de captures dans `DetailScreen` (userAdded) : ajout d'URL, suppression, touche Entrée.
 
 ### PWA & déploiement
