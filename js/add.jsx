@@ -7,15 +7,17 @@ import { CATEGORIES, CAT_KEYWORDS } from './data.js';
 import { Icon, StatusBadge, KindBadge, catOf, accentOf, tint, CAT_BY_ID } from './components.jsx';
 
 const PROVIDERS = [
-  { id: "builtin", label: "Intégré (aperçu)" },
+  { id: "builtin",    label: "Intégré (aperçu)" },
   { id: "openrouter", label: "OpenRouter" },
-  { id: "ollama", label: "Ollama" },
+  { id: "ollama",     label: "Ollama" },
+  { id: "claude",     label: "Claude (Anthropic)" },
 ];
 
 const AI_KEY = "projector.ai.v1";
 const AI_DEFAULTS = {
   provider: "builtin", orKey: "", orModel: "meta-llama/llama-3.3-70b-instruct:free",
   ollamaUrl: "http://localhost:11434", ollamaModel: "llama3.2",
+  claudeKey: "", claudeModel: "claude-haiku-4-5-20251001",
 };
 function getAIConfig() {
   try { return { ...AI_DEFAULTS, ...JSON.parse(localStorage.getItem(AI_KEY) || "{}") }; }
@@ -76,6 +78,26 @@ async function callLLM(prompt, cfg) {
     if (!r.ok) throw new Error("Ollama " + r.status);
     const j = await r.json();
     return (j.message && j.message.content) || "";
+  }
+  if (cfg.provider === "claude") {
+    if (!cfg.claudeKey) throw new Error("Clé Anthropic manquante");
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": cfg.claudeKey.trim(),
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: cfg.claudeModel || AI_DEFAULTS.claudeModel,
+        max_tokens: 1024,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!r.ok) throw new Error("Claude " + r.status);
+    const j = await r.json();
+    return (j.content && j.content[0] && j.content[0].text) || "";
   }
   // builtin (aperçu)
   if (!(window.claude && window.claude.complete))
@@ -218,8 +240,17 @@ const AIConfig = ({ cfg, onChange }) => {
           <p className="hint">100 % local. Lancez Ollama avec <span className="mono">OLLAMA_ORIGINS=*</span> pour autoriser l'appel navigateur (CORS).</p>
         </div>
       )}
+      {cfg.provider === "claude" && (
+        <div className="fade-in">
+          <input className="input" style={{ marginTop: 10 }} type="password" value={cfg.claudeKey}
+            onChange={e => set("claudeKey", e.target.value)} placeholder="Clé API Anthropic (sk-ant-…)" />
+          <input className="input" style={{ marginTop: 8 }} value={cfg.claudeModel}
+            onChange={e => set("claudeModel", e.target.value)} placeholder="Modèle (ex: claude-haiku-4-5-20251001)" />
+          <p className="hint">Appel direct à l'API Anthropic depuis le navigateur. La clé reste sur cet appareil.</p>
+        </div>
+      )}
       {cfg.provider === "builtin" && (
-        <p className="hint">Assistant de l'éditeur — pour l'aperçu uniquement. En déploiement autonome, choisissez OpenRouter ou Ollama.</p>
+        <p className="hint">Assistant de l'éditeur — pour l'aperçu uniquement. En déploiement autonome, choisissez OpenRouter, Ollama ou Claude.</p>
       )}
     </>
   );

@@ -38,12 +38,23 @@ const StatusBadge = ({ p }) => (
 
 const KindBadge = ({ p }) => <span className="kind-badge">{p.kind}</span>;
 
-/* ───── Cover (screenshot or monogram, with onError fallback) ───── */
+/* ───── Cover (screenshot or monogram, with onError fallback + auth retry for private repos) ───── */
 const Cover = ({ p, className }) => {
   const [err, setErr] = useState(false);
+  const [blobUrl, setBlobUrl] = useState(null);
   const shot = p.shots && p.shots[0];
-  if (shot && !err)
-    return <img src={shot} alt={p.name} className={className} loading="lazy" onError={() => setErr(true)} />;
+  if (shot && !err) {
+    function handleError() {
+      if (!p.private || blobUrl) { setErr(true); return; }
+      const token = localStorage.getItem('projector.ghToken') || '';
+      if (!token) { setErr(true); return; }
+      fetch(shot, { headers: { Authorization: 'Bearer ' + token } })
+        .then(r => r.ok ? r.blob() : Promise.reject())
+        .then(b => setBlobUrl(URL.createObjectURL(b)))
+        .catch(() => setErr(true));
+    }
+    return <img src={blobUrl || shot} alt={p.name} className={className} loading="lazy" onError={handleError} />;
+  }
   const accent = accentOf(p);
   return (
     <div className="mono-cover" style={{ background: tint(accent, 18), color: accent }}>
@@ -56,11 +67,22 @@ const Cover = ({ p, className }) => {
   );
 };
 
-/* ───── Gallery shot (hides itself if the image fails to load) ───── */
-const Shot = ({ src, alt }) => {
+/* ───── Gallery shot (hides itself if the image fails to load)
+   isPrivate : si vrai, tente un re-fetch authentifié (token GitHub localStorage) en cas d'erreur 403 ───── */
+const Shot = ({ src, alt, isPrivate }) => {
   const [err, setErr] = useState(false);
+  const [blobUrl, setBlobUrl] = useState(null);
   if (err) return null;
-  return <div className="frame"><img src={src} alt={alt} loading="lazy" onError={() => setErr(true)} /></div>;
+  function handleError() {
+    if (!isPrivate || blobUrl) { setErr(true); return; }
+    const token = localStorage.getItem('projector.ghToken') || '';
+    if (!token) { setErr(true); return; }
+    fetch(src, { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.ok ? r.blob() : Promise.reject())
+      .then(b => setBlobUrl(URL.createObjectURL(b)))
+      .catch(() => setErr(true));
+  }
+  return <div className="frame"><img src={blobUrl || src} alt={alt} loading="lazy" onError={handleError} /></div>;
 };
 
 /* ───── Rail card ───── */

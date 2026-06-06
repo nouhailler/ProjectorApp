@@ -37,6 +37,7 @@ const FeaturedHero = ({ items, onOpen }) => {
 
 const HomeScreen = ({ projects, onOpen, onSearch }) => {
   const featured = projects.filter(p => p.featured && p.shots.length);
+  const recent   = projects.filter(p => p.userAdded);
   const byCat = CATEGORIES.map(c => ({ c, list: projects.filter(p => p.cat === c.id) }))
     .filter(g => g.list.length);
   const total = projects.length;
@@ -62,6 +63,24 @@ const HomeScreen = ({ projects, onOpen, onSearch }) => {
       </header>
 
       <FeaturedHero items={featured} onOpen={onOpen} />
+
+      {recent.length > 0 && (
+        <section className="sec">
+          <div className="sec-head">
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+              <span className="sec-num">✦</span>
+              <div>
+                <h2 className="sec-title">Récemment ajoutés</h2>
+                <p className="sec-note">Fiches générées depuis GitHub.</p>
+              </div>
+            </div>
+            <span className="sec-count">{recent.length}</span>
+          </div>
+          <div className="rail">
+            {recent.map(p => <Card key={p.id} p={p} onOpen={onOpen} />)}
+          </div>
+        </section>
+      )}
 
       {byCat.map(({ c, list }, idx) => (
         <section className="sec" key={c.id}>
@@ -137,10 +156,22 @@ const IndexScreen = ({ projects, onOpen, query, setQuery, filter, setFilter, aut
 };
 
 /* ═══════════════ FICHE DÉTAIL ═══════════════ */
-const DetailScreen = ({ p, onBack, onOpenCat, onDelete, onRefresh, refreshing }) => {
+const DetailScreen = ({ p, onBack, onOpenCat, onDelete, onRefresh, refreshing, onEditShots }) => {
   const accent = accentOf(p);
   const cat = catOf(p);
   const ghUrl = `https://github.com/${OWNER}/${p.repo}`;
+  const [newShotUrl, setNewShotUrl] = useState("");
+
+  function addShot() {
+    const url = newShotUrl.trim();
+    if (!url || !onEditShots) return;
+    onEditShots(p, [...(p.shots || []), url]);
+    setNewShotUrl("");
+  }
+  function removeShot(idx) {
+    if (!onEditShots) return;
+    onEditShots(p, (p.shots || []).filter((_, i) => i !== idx));
+  }
   return (
     <div className="viewport fade-in" key={p.id}>
       <div className="topbar">
@@ -166,7 +197,7 @@ const DetailScreen = ({ p, onBack, onOpenCat, onDelete, onRefresh, refreshing })
 
       {p.shots && p.shots.length ? (
         <div className="gallery">
-          {p.shots.map((s, k) => <Shot key={k} src={s} alt={`${p.name} ${k + 1}`} />)}
+          {p.shots.map((s, k) => <Shot key={k} src={s} alt={`${p.name} ${k + 1}`} isPrivate={!!p.private} />)}
         </div>
       ) : (
         <div className="bigmono"><Cover p={p} /></div>
@@ -205,6 +236,35 @@ const DetailScreen = ({ p, onBack, onOpenCat, onDelete, onRefresh, refreshing })
           <p className="hint" style={{ textAlign: "center" }}>
             Dépôt privé — accessible avec votre compte GitHub.
           </p>
+        )}
+
+        {p.userAdded && onEditShots && (
+          <div style={{ marginTop: 28 }}>
+            <div className="label-line">Captures d'écran</div>
+            {(p.shots || []).length === 0 && (
+              <p className="hint" style={{ marginTop: 4 }}>Aucune capture. Ajoutez une URL ci-dessous.</p>
+            )}
+            {(p.shots || []).map((s, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", padding: "7px 0",
+                borderBottom: i < p.shots.length - 1 ? "1px solid var(--line)" : "none" }}>
+                <span style={{ flex: 1, fontSize: 12, color: "var(--ink-3)", fontFamily: "var(--mono)",
+                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s}</span>
+                <button onClick={() => removeShot(i)} style={{ color: "var(--accent)", background: "none",
+                  border: "none", cursor: "pointer", fontSize: 16, padding: "0 4px", lineHeight: 1 }}>✕</button>
+              </div>
+            ))}
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <input className="input" style={{ flex: 1 }} value={newShotUrl}
+                onChange={e => setNewShotUrl(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && addShot()}
+                placeholder="https://…/screenshot.png" />
+              <button onClick={addShot} disabled={!newShotUrl.trim()}
+                style={{ flex: "0 0 auto", padding: "0 16px", height: 42, borderRadius: 12,
+                  border: "1px solid var(--line-2)", cursor: newShotUrl.trim() ? "pointer" : "not-allowed",
+                  background: newShotUrl.trim() ? "var(--ink)" : "transparent",
+                  color: newShotUrl.trim() ? "var(--paper)" : "var(--ink-3)", fontSize: 20 }}>+</button>
+            </div>
+          </div>
         )}
       </div>
       <div className="bottom-space" />

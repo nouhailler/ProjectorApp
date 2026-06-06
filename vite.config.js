@@ -29,7 +29,7 @@ export default defineConfig({
         // API tierces : toujours réseau, jamais en cache
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/(api\.github\.com|raw\.githubusercontent\.com|openrouter\.ai)\//,
+            urlPattern: /^https:\/\/(api\.github\.com|raw\.githubusercontent\.com|openrouter\.ai|api\.anthropic\.com)\//,
             handler: 'NetworkOnly',
           },
           {

@@ -51,6 +51,7 @@ function App() {
 
   const addProject = (p) => setUserProjects(list => [{ ...p }, ...list.filter(x => x.repo.toLowerCase() !== p.repo.toLowerCase())]);
   const deleteProject = (p) => { setUserProjects(list => list.filter(x => x.id !== p.id)); setDetail(null); };
+  const editShots = (p, shots) => { const u = { ...p, shots }; addProject(u); setDetail(u); };
 
   // Rafraîchir une fiche depuis GitHub (README + captures régénérés)
   const refreshProject = async (p) => {
@@ -70,7 +71,7 @@ function App() {
   let screen;
   if (detail) {
     screen = <DetailScreen p={detail} onBack={closeDetail} onOpenCat={openCat} onDelete={deleteProject}
-      onRefresh={refreshProject} refreshing={refreshing} />;
+      onRefresh={refreshProject} refreshing={refreshing} onEditShots={editShots} />;
   } else if (tab === "home") {
     screen = <HomeScreen projects={projects} onOpen={openProject} onSearch={goSearch} />;
   } else if (tab === "index") {

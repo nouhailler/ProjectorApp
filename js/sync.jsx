@@ -41,6 +41,26 @@ async function fetchReadme(owner, repo, token) {
 const IMG_RE = /\.(png|jpe?g|gif|webp)$/i;
 const SHOT_HINT = /(screenshot|screens|capture|preview|docs\/|\/docs|demo|media|gallery|images?)/i;
 const SHOT_BAD = /(node_modules|\/dist\/|\/build\/|packaging|deb_root|\.deb|android|ios|favicon|icon|logo|adaptive|splash|vite\.svg|react\.svg|apple-touch|maskable|mipmap)/i;
+/* Extrait les URLs d'images présentes dans un README Markdown
+   (balises ![alt](url) et <img src="…">) — utilisé en repli quand
+   l'arbre Git ne contient pas de captures (dépôts privés ou pas d'images dans les assets). */
+function extractReadmeImages(readme) {
+  if (!readme) return [];
+  const seen = new Set();
+  const mdRe   = /!\[[^\]]*\]\(([^\s)]+)/g;           // ![alt](url) ou ![alt](url "title")
+  const htmlRe  = /<img[^>]+src=["']([^"'>]+)/gi;     // <img src="url">
+  let m;
+  for (const re of [mdRe, htmlRe]) {
+    re.lastIndex = 0;
+    while ((m = re.exec(readme)) !== null) {
+      const url = m[1];
+      if (/^https?:\/\//i.test(url) && IMG_RE.test(url) && !SHOT_BAD.test(url))
+        seen.add(url);
+    }
+  }
+  return [...seen].slice(0, 4);
+}
+
 async function detectShots(owner, repo, branch, token, isPrivate) {
   // Les URL raw.githubusercontent ne s'affichent pas pour les dépôts privés
   // sans proxy authentifié → on ne tente que pour les dépôts publics.
@@ -69,7 +89,10 @@ async function refreshFiche(existing, opts) {
   const readme = await fetchReadme(owner, repo, token);
   let gen = null;
   if (readme && readme.length > 40) { try { gen = await buildFiche({ url: `https://github.com/${owner}/${repo}`, readme, cfg }); } catch (e) {} }
-  let shots = (existing.shots && existing.shots.length) ? existing.shots : await detectShots(owner, repo, branch, token, isPriv);
+  let shots = (existing.shots && existing.shots.length)
+    ? existing.shots
+    : await detectShots(owner, repo, branch, token, isPriv);
+  if (!shots.length) shots = extractReadmeImages(readme);
   return {
     ...existing,
     ...(gen ? { tagline: gen.tagline, pitch: gen.pitch, features: gen.features, tech: gen.tech } : {}),
@@ -144,7 +167,9 @@ const SyncScreen = ({ projects, onAdd, onOpen, goHome, onPendingCount }) => {
           fiche = (readme && readme.length > 40)
             ? await buildFiche({ url: r.url, readme, cfg })
             : fallbackFiche({ repo: r.name, url: r.url, desc: r.desc, lang: r.lang, isPrivate: r.private, branch: r.branch });
-          fiche.shots = await detectShots(r.owner, r.name, r.branch, token, r.private);
+          let shots = await detectShots(r.owner, r.name, r.branch, token, r.private);
+          if (!shots.length) shots = extractReadmeImages(readme);
+          fiche.shots = shots;
           fiche.private = r.private; fiche.branch = r.branch; fiche.baseline = r.pushed;
         }
         onAdd(fiche);
