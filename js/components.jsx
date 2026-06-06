@@ -3,6 +3,20 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { CATEGORIES } from './data.js';
 
 const CAT_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+/* Charge une image privée raw.githubusercontent.com via l'API GitHub Contents
+   (CORS + auth supportés) et retourne une blob URL. */
+async function fetchPrivateShot(rawUrl, token) {
+  const m = rawUrl.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)$/);
+  if (!m) throw new Error("not a raw github url");
+  const [, owner, repo, ref, path] = m;
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${encodeURIComponent(ref)}`;
+  const r = await fetch(apiUrl, {
+    headers: { Authorization: "Bearer " + token, Accept: "application/vnd.github.raw+json" },
+  });
+  if (!r.ok) throw new Error(r.status);
+  return URL.createObjectURL(await r.blob());
+}
 const catOf = p => CAT_BY_ID[p.cat] || CATEGORIES[0];
 const accentOf = p => catOf(p).accent;
 const tint = (accent, pct) => `color-mix(in oklab, ${accent} ${pct}%, var(--paper-3))`;
@@ -45,13 +59,10 @@ const Cover = ({ p, className }) => {
   const shot = p.shots && p.shots[0];
   if (shot && !err) {
     function handleError() {
-      if (blobUrl) { setErr(true); return; }
-      const token = localStorage.getItem('projector.ghToken') || '';
+      if (blobUrl || !/raw\.githubusercontent\.com/.test(shot)) { setErr(true); return; }
+      const token = localStorage.getItem("projector.ghToken") || "";
       if (!token) { setErr(true); return; }
-      fetch(shot, { headers: { Authorization: 'Bearer ' + token } })
-        .then(r => r.ok ? r.blob() : Promise.reject())
-        .then(b => setBlobUrl(URL.createObjectURL(b)))
-        .catch(() => setErr(true));
+      fetchPrivateShot(shot, token).then(url => setBlobUrl(url)).catch(() => setErr(true));
     }
     return <img src={blobUrl || shot} alt={p.name} className={className} loading="lazy" onError={handleError} />;
   }
@@ -74,13 +85,10 @@ const Shot = ({ src, alt }) => {
   const [blobUrl, setBlobUrl] = useState(null);
   if (err) return null;
   function handleError() {
-    if (blobUrl) { setErr(true); return; }          // déjà tenté en auth → abandon
-    const token = localStorage.getItem('projector.ghToken') || '';
-    if (!token) { setErr(true); return; }            // pas de token → abandon
-    fetch(src, { headers: { Authorization: 'Bearer ' + token } })
-      .then(r => r.ok ? r.blob() : Promise.reject())
-      .then(b => setBlobUrl(URL.createObjectURL(b)))
-      .catch(() => setErr(true));
+    if (blobUrl || !/raw\.githubusercontent\.com/.test(src)) { setErr(true); return; }
+    const token = localStorage.getItem("projector.ghToken") || "";
+    if (!token) { setErr(true); return; }
+    fetchPrivateShot(src, token).then(url => setBlobUrl(url)).catch(() => setErr(true));
   }
   return <div className="frame"><img src={blobUrl || src} alt={alt} loading="lazy" onError={handleError} /></div>;
 };
