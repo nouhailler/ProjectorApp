@@ -93,12 +93,23 @@ const Shot = ({ src, alt }) => {
   return <div className="frame"><img src={blobUrl || src} alt={alt} loading="lazy" onError={handleError} /></div>;
 };
 
+/* ───── Pastille « En ligne » ───── */
+const LiveBadge = ({ p }) => {
+  if (!p.live) return null;
+  return (
+    <span className="status" style={{ color: accentOf(p) }}>
+      <Icon name="globe" size={11} stroke={1.8} /> En ligne
+    </span>
+  );
+};
+
 /* ───── Rail card ───── */
 const Card = ({ p, onOpen }) => (
   <div className="card fade-in" onClick={() => onOpen(p)}>
     <div className="cover"><Cover p={p} /></div>
     <div className="nm">{p.name}</div>
     <div className="tl">{p.tagline}</div>
+    {p.live && <LiveBadge p={p} />}
   </div>
 );
 
@@ -112,10 +123,11 @@ const Row = ({ p, onOpen }) => (
       <div style={{ display: "flex", gap: 12, marginTop: 5, alignItems: "center" }}>
         <StatusBadge p={p} />
         <KindBadge p={p} />
+        {p.live && <LiveBadge p={p} />}
       </div>
     </div>
     <div className="chev"><Icon name="chevron" size={18} /></div>
   </div>
 );
 
-export { Icon, StatusBadge, KindBadge, Cover, Shot, Card, Row, catOf, accentOf, tint, CAT_BY_ID };
+export { Icon, StatusBadge, KindBadge, LiveBadge, Cover, Shot, Card, Row, catOf, accentOf, tint, CAT_BY_ID };

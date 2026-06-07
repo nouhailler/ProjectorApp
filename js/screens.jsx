@@ -222,7 +222,12 @@ const DetailScreen = ({ p, onBack, onOpenCat, onDelete, onRefresh, refreshing, o
           {p.tech.map(t => <span className="tech" key={t}>{t}</span>)}
         </div>
 
-        <a className="cta" href={ghUrl} target="_blank" rel="noopener">
+        {p.live && (
+          <a className="cta" href={p.live} target="_blank" rel="noopener">
+            <Icon name="globe" size={18} /> Ouvrir l'application
+          </a>
+        )}
+        <a className="cta ghost" href={ghUrl} target="_blank" rel="noopener">
           <Icon name="github" size={18} /> Voir sur GitHub
         </a>
         {onRefresh && (

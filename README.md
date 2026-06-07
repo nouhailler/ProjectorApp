@@ -58,6 +58,7 @@ Typographies : Instrument Serif, Newsreader, Manrope, JetBrains Mono (via CDN Bu
   tech: [string],
   shots: [url],                              // raw.githubusercontent.com ou blob: pour dépôts privés
   featured?: bool,
+  live?: string,                             // URL de l'app déployée (ex. https://x.netlify.app) — absent si non déployé
   userAdded?: bool, source?: "ai"|"ai-refresh"|"fallback", baseline?: string
 }
 ```
@@ -114,3 +115,12 @@ Le projet est déployé sur **Netlify** en connexion directe avec ce dépôt Git
 ```
 
 Le Service Worker (Workbox) met en cache les assets statiques en cache-first et les API tierces en network-only.
+
+### Lien « Ouvrir l'application »
+
+Le bouton CTA « Ouvrir l'application » dans la fiche détail s'affiche dès qu'une fiche possède un champ `live` non vide. Ce champ est alimenté de deux façons, par ordre de priorité :
+
+1. **Hardcodé dans `data.js`** : les fiches du socle dont l'URL Netlify est connue ont un champ `live` explicite.
+2. **Synchro GitHub automatique** : lors d'une synchro, le champ `homepage` du dépôt GitHub (le « Website » dans la section About) est lu via l'API et écrit dans `live`. Si le dépôt n'a pas de homepage, la valeur hardcodée du socle est préservée.
+
+En pratique : renseigner le champ **Website** dans la section About d'un dépôt GitHub suffit à faire apparaître le bouton « Ouvrir l'application » au prochain rafraîchissement de la fiche.

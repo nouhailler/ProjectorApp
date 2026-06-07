@@ -29,7 +29,7 @@ async function listRepos(owner, token) {
   return arr.map(x => ({
     name: x.name, owner: (x.owner && x.owner.login) || owner, desc: x.description || "",
     private: x.private, lang: x.language || "", branch: x.default_branch || "main",
-    url: x.html_url, pushed: x.pushed_at,
+    url: x.html_url, pushed: x.pushed_at, homepage: x.homepage || "",
   }));
 }
 async function fetchReadme(owner, repo, token) {
@@ -93,7 +93,8 @@ async function refreshFiche(existing, opts) {
   const cfg = opts.cfg, token = opts.token;
   const owner = OWNER, repo = existing.repo, branch = existing.branch || "main";
   let pushed = existing.baseline || null, isPriv = !!existing.private;
-  try { const meta = await (await ghGet(`https://api.github.com/repos/${owner}/${repo}`, token)).json(); pushed = meta.pushed_at; isPriv = meta.private; }
+  let homepage = existing.live || "";
+  try { const meta = await (await ghGet(`https://api.github.com/repos/${owner}/${repo}`, token)).json(); pushed = meta.pushed_at; isPriv = meta.private; homepage = meta.homepage || homepage; }
   catch (e) {}
   const readme = await fetchReadme(owner, repo, token);
   let gen = null;
@@ -108,6 +109,7 @@ async function refreshFiche(existing, opts) {
     name: existing.name, repo, branch, private: isPriv, shots,
     id: existing.id, userAdded: true, source: "ai-refresh", baseline: pushed,
     year: existing.year || String(new Date().getFullYear()),
+    live: homepage,
   };
 }
 
@@ -180,6 +182,7 @@ const SyncScreen = ({ projects, onAdd, onOpen, goHome, onPendingCount }) => {
           if (!shots.length) shots = extractReadmeImages(readme, r.owner, r.name, r.branch);
           fiche.shots = shots;
           fiche.private = r.private; fiche.branch = r.branch; fiche.baseline = r.pushed;
+          fiche.live = r.homepage || "";
         }
         onAdd(fiche);
         baselines[key] = r.pushed;

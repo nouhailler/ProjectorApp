@@ -4,6 +4,20 @@ Tous les changements notables de ProjectorApp sont documentés ici.
 
 ---
 
+## [1.3.0] — 2026-06-07
+
+### Ajouté
+- **Champ `live?`** : nouveau champ optionnel sur les fiches — URL de l'app déployée (Netlify ou autre). Absent = pas de lien.
+- **CTA « Ouvrir l'application »** (`DetailScreen`) : bouton primaire rendu uniquement si `p.live` est défini. Le bouton GitHub existant passe en secondaire (classe `ghost`) — l'app live est l'action principale quand elle existe.
+- **Pastille « En ligne »** (`Card` + `Row`) : badge discret avec icône globe + couleur d'accent de la collection, cohérent avec `StatusBadge` / `KindBadge`. Invisible quand `live` est absent.
+- **Câblage synchro GitHub** (`sync.jsx`) :
+  - `listRepos` : expose `homepage` (champ « Website » du dépôt GitHub).
+  - `refreshFiche` : lit `meta.homepage` et l'écrit dans `live`, en préservant la valeur hardcodée du socle si le dépôt n'a pas de homepage GitHub.
+  - `runItems` : initialise `fiche.live` depuis `r.homepage` pour les nouvelles fiches.
+- **14 URLs Netlify hardcodées** dans `data.js` : nutritor, medicor, urgentor, jardinator, recettor-web, theatror, genealogor, meteor, weathor, karatagor, librelector, rssnews, noteor, prononciator.
+
+---
+
 ## [1.2.1] — 2026-06-06
 
 ### Corrigé

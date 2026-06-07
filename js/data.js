@@ -1,7 +1,14 @@
 /* ProjectorApp — données du portfolio
    33 projets GitHub de nouhailler, répartis en 7 collections.
    Les fiches ajoutées (synchro GitHub ou README collé) sont fusionnées
-   par-dessus ce socle et persistées dans localStorage. */
+   par-dessus ce socle et persistées dans localStorage.
+
+   Modèle d'une fiche :
+     id, name, repo, branch, private, cat, kind, year, tagline, pitch,
+     features: [string], tech: [string], shots: [url],
+     featured?  : bool — mis en avant sur l'accueil
+     live?      : URL de l'app déployée (ex. https://x.netlify.app) — absent si non déployé
+     userAdded? : bool, source? : "ai"|"ai-refresh"|"fallback", baseline? : string */
 
 export const OWNER = "nouhailler";
 
@@ -19,7 +26,7 @@ export const PROJECTS = [
   // ───────────────────────── Santé & soin
   {
     id: "nutritor", name: "Nutritor", repo: "nutritor", branch: "master", private: false,
-    cat: "sante", kind: "Mobile · Web", year: "2025",
+    cat: "sante", kind: "Mobile · Web", year: "2025", live: "https://nutritor.netlify.app",
     tagline: "Compagnon de connaissance nutritionnelle pour estomacs sensibles.",
     pitch: "Pas une appli de régime, mais un compagnon pour comprendre ce que l'on mange. Base CIQUAL (3 167 aliments), Open Food Facts, scanner code-barres, timeline physiologique interactive et mémoire digestive qui croise 21 jours de repas et de symptômes pour révéler vos intolérances. L'IA — optionnelle, via OpenRouter, Ollama, Claude ou OpenAI — enrichit les fiches et génère des repas adaptés au profil FODMAP.",
     features: [
@@ -35,7 +42,7 @@ export const PROJECTS = [
   },
   {
     id: "medicor", name: "Medicor", repo: "Medicor", branch: "main", private: true,
-    cat: "sante", kind: "Web · PWA", year: "2025",
+    cat: "sante", kind: "Web · PWA", year: "2025", live: "https://medikor.netlify.app",
     tagline: "Médecine douce générée par IA : pathologies, huiles, phyto.",
     pitch: "Une PWA mobile-first dédiée aux thérapies naturelles : 2 102 pathologies, 306 huiles essentielles, phytothérapie, nutrition, remèdes maison et navigation par zone anatomique. Chaque fiche est générée par IA (Ollama en local ou OpenRouter), adossée à la base officielle BDPM de 13 592 médicaments. Design « Nature & Serenity » — sauge, terracotta, Newsreader.",
     features: [
@@ -51,7 +58,7 @@ export const PROJECTS = [
   },
   {
     id: "urgentor", name: "Urgentor", repo: "urgentor", branch: "main", private: true,
-    cat: "sante", kind: "Web · PWA", year: "2025",
+    cat: "sante", kind: "Web · PWA", year: "2025", live: "https://urgentor.netlify.app",
     tagline: "Premiers secours fiables, accessibles hors-ligne.",
     pitch: "Des fiches de premiers secours rapides et conformes aux référentiels officiels : secours à personne, risque chimique, NRBC, incendie et évacuation. Pensé pour fonctionner hors-ligne, avec synthèse vocale et un générateur de fiches par IA (OpenRouter).",
     features: [
@@ -68,7 +75,7 @@ export const PROJECTS = [
   // ───────────────────────── Maison & quotidien
   {
     id: "jardinator", name: "Jardinator", repo: "jardinator", branch: "main", private: false,
-    cat: "maison", kind: "Bureau Linux · Web", year: "2025",
+    cat: "maison", kind: "Bureau Linux · Web", year: "2025", live: "https://jardinator.netlify.app",
     tagline: "Planificateur de potager : semis, associations, calendrier.",
     pitch: "Un planificateur de potager complet : calendrier de semis, associations de cultures, distances de plantation, diagnostic et conseils, sur une base de données de centaines de légumes et variétés. Décliné en application Linux (PyQt) et en version web installable (PWA).",
     features: [
@@ -98,7 +105,7 @@ export const PROJECTS = [
   },
   {
     id: "recettor-web", name: "Recettor Web", repo: "recettor-web", branch: "main", private: true,
-    cat: "maison", kind: "Web", year: "2025",
+    cat: "maison", kind: "Web", year: "2025", live: "https://recettor.netlify.app",
     tagline: "La déclinaison web de Recettor (React + Vite).",
     pitch: "Version web de Recettor pour consulter et créer des recettes depuis le navigateur, déployée sur Netlify, avec génération assistée par OpenRouter.",
     features: [
@@ -111,7 +118,7 @@ export const PROJECTS = [
   },
   {
     id: "theatror", name: "Theatror", repo: "theatror", branch: "main", private: false,
-    cat: "maison", kind: "Web · PWA", year: "2025",
+    cat: "maison", kind: "Web · PWA", year: "2025", live: "https://theatror.netlify.app",
     tagline: "Les pièces de théâtre à Paris, cette semaine.",
     pitch: "Une app web légère qui liste les pièces de théâtre jouées à Paris cette semaine — recherche, filtres et favoris. Les données viennent de l'Open Data de la Ville de Paris ; installable en PWA.",
     features: [
@@ -125,7 +132,7 @@ export const PROJECTS = [
   },
   {
     id: "genealogor", name: "Genealogor", repo: "genealogor", branch: "master", private: false,
-    cat: "maison", kind: "Web · PWA", year: "2025",
+    cat: "maison", kind: "Web · PWA", year: "2025", live: "https://genealogor.netlify.app",
     tagline: "Arbre généalogique interactif avec laboratoire IA.",
     pitch: "Une application de généalogie riche : arbres ascendants et descendants, vue sablier, implexe, carte géographique des lieux, timeline et statistiques. Coffre chiffré, pièces jointes, et un laboratoire IA pour enrichir biographies et hypothèses.",
     features: [
@@ -142,7 +149,7 @@ export const PROJECTS = [
   // ───────────────────────── Météo & finance
   {
     id: "meteor", name: "Meteor", repo: "meteor", branch: "main", private: true,
-    cat: "data", kind: "Web · Desktop", year: "2025",
+    cat: "data", kind: "Web · Desktop", year: "2025", live: "https://meteo-r.netlify.app",
     tagline: "Tableau de bord météo open-source, sans clé API.",
     pitch: "Un tableau de bord météo en React + Vite, 100 % open data via Open-Meteo : prévisions 7 jours, carte interactive avec overlays, qualité de l'air, historique jusqu'à 90 jours et export CSV. Aucun compte, aucune clé API, aucune télémétrie.",
     features: [
@@ -158,7 +165,7 @@ export const PROJECTS = [
   },
   {
     id: "weathor", name: "Weathor", repo: "weathor", branch: "main", private: true,
-    cat: "data", kind: "Bureau Linux", year: "2025",
+    cat: "data", kind: "Bureau Linux", year: "2025", live: "https://weathor.netlify.app",
     tagline: "App météo GTK4, prévisions 7 jours sans clé API.",
     pitch: "Une application météo native GTK4 propulsée par Open-Meteo : prévisions 7 jours, indice UV, pression, humidité, rafales de vent. Architecture MVC propre, tests inclus, aucune clé API requise.",
     features: [
@@ -189,7 +196,7 @@ export const PROJECTS = [
   // ───────────────────────── Médias & lecture
   {
     id: "karatagor", name: "KaraTagor", repo: "KaraTagor", branch: "main", private: false,
-    cat: "medias", kind: "Bureau Linux · Android", year: "2025",
+    cat: "medias", kind: "Bureau Linux · Android", year: "2025", live: "https://karatagor.netlify.app",
     tagline: "Lecteur karaoké MP3 + éditeur de tags ID3.",
     pitch: "Une app desktop Python : lecture de MP3 en mode karaoké avec paroles synchronisées, identification automatique et édition des tags ID3v2, gestion de playlists avec explorateur de fichiers. Déclinée aussi en build Android via Capacitor.",
     features: [
@@ -230,7 +237,7 @@ export const PROJECTS = [
   },
   {
     id: "librelector", name: "LibreLector", repo: "LibreLector", branch: "main", private: true,
-    cat: "medias", kind: "Bureau Linux · Web", year: "2025",
+    cat: "medias", kind: "Bureau Linux · Web", year: "2025", live: "https://librelector.netlify.app",
     tagline: "Lecteur d'EPUB qui lit vos livres à voix haute.",
     pitch: "Un lecteur de fichiers EPUB (et PDF, FB2, TXT) qui lit à voix haute via le moteur TTS Kokoro ou Web Speech, avec notes, marque-pages et bibliothèque. Décliné en desktop (Tauri) et en web.",
     features: [
@@ -244,7 +251,7 @@ export const PROJECTS = [
   },
   {
     id: "rssnews", name: "RssNews", repo: "rssnews", branch: "main", private: true,
-    cat: "medias", kind: "Bureau Linux · Web", year: "2025",
+    cat: "medias", kind: "Bureau Linux · Web", year: "2025", live: "https://rssreador.netlify.app",
     tagline: "Lecteur de flux RSS avec lecture vocale.",
     pitch: "Un agrégateur de flux RSS qui lit les articles à voix haute, disponible en desktop (PyQt) et en web (React + backend FastAPI).",
     features: [
@@ -324,7 +331,7 @@ export const PROJECTS = [
   },
   {
     id: "noteor", name: "Noteor", repo: "Noteor", branch: "main", private: true,
-    cat: "creation", kind: "Bureau Linux · Web", year: "2025",
+    cat: "creation", kind: "Bureau Linux · Web", year: "2025", live: "https://noteor.netlify.app",
     tagline: "Prise de notes textuelles et vocales.",
     pitch: "Une app de prise de notes textuelles et vocales : éditeur riche, enregistrement audio et webcam, vue calendrier et graphe de liens entre notes. Desktop (PyQt) et web (React), avec IA via OpenRouter.",
     features: [
@@ -436,7 +443,7 @@ export const PROJECTS = [
   // ───────────────────────── Langues & IA
   {
     id: "prononciator", name: "Prononciator", repo: "Prononciator", branch: "main", private: true,
-    cat: "langues", kind: "Web · PWA", year: "2025",
+    cat: "langues", kind: "Web · PWA", year: "2025", live: "https://prononciator.netlify.app",
     tagline: "Apprendre l'anglais grâce à l'IA.",
     pitch: "Une app d'apprentissage de l'anglais centrée sur la prononciation : conversation IA, exercices, vocabulaire avec répétition espacée (SRS) et reconnaissance vocale. Génération via OpenRouter.",
     features: [
