@@ -31,10 +31,19 @@ function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);  // fiches obsolètes détectées à la dernière synchro
 
-  // fusion : les fiches utilisateur (ajoutées / rafraîchies) priment sur le socle, dé-dupliquées par dépôt
+  // fusion : les fiches utilisateur (ajoutées / rafraîchies) priment sur le socle, dé-dupliquées par dépôt.
+  // Les champs optionnels ajoutés au socle (ex. live) sont hérités si absents de la fiche localStorage.
   const projects = useMemo(() => {
+    const baseByRepo = new Map(PROJECTS.map(p => [p.repo.toLowerCase(), p]));
     const seen = new Set(); const out = [];
-    for (const p of userProjects) { const k = p.repo.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(p); } }
+    for (const p of userProjects) {
+      const k = p.repo.toLowerCase();
+      if (!seen.has(k)) {
+        seen.add(k);
+        const base = baseByRepo.get(k);
+        out.push(base && base.live && !p.live ? { ...p, live: base.live } : p);
+      }
+    }
     for (const p of PROJECTS) { const k = p.repo.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(p); } }
     return out;
   }, [userProjects]);
