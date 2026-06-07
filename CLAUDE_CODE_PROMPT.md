@@ -22,15 +22,16 @@ Pour tester en local : `npm run dev` → `http://localhost:5173`.
 - Catalogue socle de 33 projets (`js/data.js`) classés en 7 collections.
 - **Accueil** : carrousel « En vedette » + section **Récemment ajoutés** (fiches userAdded) + rails par collection.
 - **Index** : recherche plein-texte + filtres par collection.
-- **Fiche détail** : pitch, fonctionnalités clés, stack, galerie de captures, lien GitHub, bouton Rafraîchir, **éditeur de captures** (userAdded uniquement).
+- **Fiche détail** : pitch, fonctionnalités clés, stack, galerie de captures, CTA **« Ouvrir l'application »** (primaire, conditionnel sur `p.live`), lien GitHub (secondaire `ghost`), bouton Rafraîchir, **éditeur de captures** (userAdded uniquement).
 
 ### Synchro GitHub (`js/sync.jsx`)
-- `listRepos` : liste les dépôts via l'API GitHub (publics sans token, publics + privés avec token `repo`).
+- `listRepos` : liste les dépôts via l'API GitHub (publics sans token, publics + privés avec token `repo`) ; expose `homepage` (champ « Website » du dépôt).
 - `detectShots` : scanne l'arbre Git récursif, filtre les images > 12 Ko, exclut icônes/logos/builds.
 - `extractReadmeImages` : parse `![](url)` et `<img src>` dans le README ; **résout les chemins relatifs** (`assets/img.png` → URL `raw.githubusercontent.com` absolue).
 - Détection des fiches obsolètes (`pushed_at` vs baseline) + badge de count sur l'onglet Ajouter.
 - Bouton « Rafraîchir les N obsolètes » en un clic.
-- `refreshFiche` : régénère tagline, pitch, features, tech depuis le README ; conserve les captures existantes.
+- `refreshFiche` : régénère tagline, pitch, features, tech depuis le README ; conserve les captures existantes ; lit `meta.homepage` → `live` (préserve le hardcode du socle si le repo n'a pas de homepage GitHub).
+- `runItems` (nouvelles fiches) : initialise `fiche.live` depuis `r.homepage`.
 
 ### Génération IA (`js/add.jsx`)
 - `callLLM` route vers 4 fournisseurs : **OpenRouter**, **Ollama**, **Claude (Anthropic)**, **Intégré** (éditeur uniquement).
@@ -40,6 +41,7 @@ Pour tester en local : `npm run dev` → `http://localhost:5173`.
 - `PasteScreen` : génération manuelle depuis un README collé.
 
 ### Affichage des captures
+- **`LiveBadge`** (`components.jsx`) : pastille « En ligne » (icône globe, couleur d'accent), affichée sur `Card` et `Row` quand `p.live` est défini. Cohérente avec `StatusBadge` / `KindBadge`.
 - `Cover` et `Shot` tentent le chargement direct, puis `fetchPrivateShot` si l'image échoue.
 - **`fetchPrivateShot`** : convertit une URL `raw.githubusercontent.com` en appel `api.github.com/repos/.../contents/...?ref=branch` avec `Accept: application/vnd.github.raw+json` — contourne le blocage CORS de raw.githubusercontent.com pour les requêtes authentifiées.
 - Nécessite le token GitHub mémorisé en localStorage (`projector.ghToken`).
@@ -55,7 +57,7 @@ Pour tester en local : `npm run dev` → `http://localhost:5173`.
 ## Contraintes à respecter
 
 - Esthétique **éditoriale** : papier chaud `#F4EFE6`, encre `#1B1815`, accent par collection ; typos Instrument Serif / Newsreader / Manrope / JetBrains Mono. Le design system vit dans le `<style>` de `index.html`.
-- Le **socle** `js/data.js` reste la source vérifiée ; la synchro ne fait qu'**ajouter / rafraîchir** par-dessus (fusion dé-dupliquée par dépôt dans `js/app.jsx`).
+- Le **socle** `js/data.js` reste la source vérifiée ; la synchro ne fait qu'**ajouter / rafraîchir** par-dessus (fusion dé-dupliquée par dépôt dans `js/app.jsx`). Lors de la fusion, les champs optionnels présents dans le socle mais absents de la fiche localStorage (ex. `live`) sont **hérités automatiquement** au moment du render.
 - **Pas de secret en dur.** Tokens et clés API restent en localStorage (côté utilisateur).
 
 ---

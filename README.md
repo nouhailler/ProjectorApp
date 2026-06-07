@@ -124,3 +124,5 @@ Le bouton CTA « Ouvrir l'application » dans la fiche détail s'affiche dès qu
 2. **Synchro GitHub automatique** : lors d'une synchro, le champ `homepage` du dépôt GitHub (le « Website » dans la section About) est lu via l'API et écrit dans `live`. Si le dépôt n'a pas de homepage, la valeur hardcodée du socle est préservée.
 
 En pratique : renseigner le champ **Website** dans la section About d'un dépôt GitHub suffit à faire apparaître le bouton « Ouvrir l'application » au prochain rafraîchissement de la fiche.
+
+**Fusion socle ↔ localStorage** : si une fiche a déjà été sauvegardée en localStorage (sans `live`), la valeur du socle est héritée automatiquement au moment du render — aucun refresh manuel nécessaire.

@@ -4,12 +4,19 @@ Tous les changements notables de ProjectorApp sont documentés ici.
 
 ---
 
+## [1.3.1] — 2026-06-07
+
+### Corrigé
+- **Héritage du champ `live` vers les fiches localStorage** (`app.jsx`) : lors de la fusion socle ↔ `userProjects`, si une fiche sauvegardée en localStorage ne possède pas encore `live` mais que la version du socle en a un, il est hérité automatiquement au moment du render — sans refresh manuel ni purge du localStorage.
+
+---
+
 ## [1.3.0] — 2026-06-07
 
 ### Ajouté
 - **Champ `live?`** : nouveau champ optionnel sur les fiches — URL de l'app déployée (Netlify ou autre). Absent = pas de lien.
 - **CTA « Ouvrir l'application »** (`DetailScreen`) : bouton primaire rendu uniquement si `p.live` est défini. Le bouton GitHub existant passe en secondaire (classe `ghost`) — l'app live est l'action principale quand elle existe.
-- **Pastille « En ligne »** (`Card` + `Row`) : badge discret avec icône globe + couleur d'accent de la collection, cohérent avec `StatusBadge` / `KindBadge`. Invisible quand `live` est absent.
+- **Pastille « En ligne »** (`LiveBadge`, `Card` + `Row`) : badge discret avec icône globe + couleur d'accent de la collection, cohérent avec `StatusBadge` / `KindBadge`. Invisible quand `live` est absent.
 - **Câblage synchro GitHub** (`sync.jsx`) :
   - `listRepos` : expose `homepage` (champ « Website » du dépôt GitHub).
   - `refreshFiche` : lit `meta.homepage` et l'écrit dans `live`, en préservant la valeur hardcodée du socle si le dépôt n'a pas de homepage GitHub.
